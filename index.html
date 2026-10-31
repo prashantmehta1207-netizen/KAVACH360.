@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KAVACH360 AI - Construction Safety Intelligence Platform</title>
+  <meta name="description" content="Multimodal AI-powered construction site safety inspection platform for real-time hazard detection, safety SOP matching, interactive site blueprints, and corrective action intelligence." />
+  <meta property="og:title" content="KAVACH360 AI - Construction Safety Intelligence Platform" />
+  <meta property="og:description" content="Multimodal AI-powered construction site safety inspection platform. See the Risk. Understand the Danger. Prevent the Incident." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- External CDN Libraries (Allowed: Font Awesome, Chart.js, Leaflet) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Pure CSS3 Design System & Components -->
+  <link rel="stylesheet" href="/frontend/styles.css" />
+  <link rel="stylesheet" href="/frontend/css/components.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- ====================================================================
+         DARK NAVY BLUE SIDEBAR
+         ==================================================================== -->
+    <aside class="sidebar" aria-label="Main Navigation">
+      <div class="sidebar-header">
+        <a href="#dashboard" class="brand-wrapper">
+          <div class="brand-logo-icon">
+            <i class="fas fa-shield-halved"></i>
+          </div>
+          <div class="brand-info">
+            <div class="brand-title">KAVACH<span>360</span> AI</div>
+            <div class="brand-tagline">Safety Intelligence</div>
+          </div>
+        </a>
+        <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close Sidebar">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav-container">
+        <div class="nav-section-label">Inspection Ops</div>
+
+        <a href="#dashboard" class="nav-item active" data-route="dashboard">
+          <i class="fas fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="#inspection" class="nav-item" data-route="inspection">
+          <i class="fas fa-video"></i>
+          <span>Video Inspections</span>
+        </a>
+
+        <a href="#analysis" class="nav-item" data-route="analysis">
+          <i class="fas fa-brain-circuit"></i>
+          <span>AI Vision Pipeline</span>
+          <span class="nav-badge" style="background:#2563eb;">Ollama</span>
+        </a>
+
+        <a href="#hazards" class="nav-item" data-route="hazards">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span>Hazard Detection</span>
+          <span class="nav-badge" id="sidebar-hazard-badge">3</span>
+        </a>
+
+        <div class="nav-section-label">Site Management & Spatial</div>
+
+        <a href="#site-map" class="nav-item" data-route="site-map">
+          <i class="fas fa-map-location-dot"></i>
+          <span>Smart Site Map</span>
+        </a>
+
+        <a href="#safety-sops" class="nav-item" data-route="safety-sops">
+          <i class="fas fa-book-bookmark"></i>
+          <span>Safety SOPs</span>
+        </a>
+
+        <a href="#action-center" class="nav-item" data-route="action-center">
+          <i class="fas fa-list-check"></i>
+          <span>Action Center</span>
+          <span class="nav-badge" style="background:#f59e0b;">5</span>
+        </a>
+
+        <a href="#reports" class="nav-item" data-route="reports">
+          <i class="fas fa-file-shield"></i>
+          <span>Audit Reports</span>
+        </a>
+
+        <a href="#sites" class="nav-item" data-route="sites">
+          <i class="fas fa-city"></i>
+          <span>Site Management</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="ai-engine-status">
+          <div class="engine-header">
+            <span class="engine-title">
+              <span class="engine-pulse"></span> Gemma 4 Vision
+            </span>
+            <span style="font-size:10px; color:#60a5fa; font-weight:700;">ACTIVE</span>
+          </div>
+          <div class="engine-desc">
+            Local Ollama Engine via FastAPI &bull; Multimodal Safety Reasoning
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN WORKSPACE WRAPPER
+         ==================================================================== -->
+    <div class="main-wrapper">
+      <!-- TOP STICKY HEADER -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Open Mobile Menu">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="page-title-box">
+            <h1 class="page-main-title" id="header-main-title">Executive Safety Dashboard</h1>
+            <div class="page-breadcrumbs" id="header-breadcrumbs">Overview / Live Safety Metrics</div>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Active Site Selector -->
+          <div class="site-selector-wrapper">
+            <i class="fas fa-location-dot"></i>
+            <select class="site-select" id="global-site-selector" aria-label="Select Active Construction Site">
+              <option value="site-skyline-b">Skyline Tower B - Metro Phase 3</option>
+              <option value="site-harbor-a">Harbor View Commercial Complex</option>
+              <option value="site-apex-logistics">Apex Automated Logistics Hub</option>
+            </select>
+          </div>
+
+          <!-- Mode Status Pill -->
+          <div class="status-mode-pill demo" id="status-mode-pill" title="Click to view backend connection settings">
+            <i class="fas fa-bolt"></i>
+            <span>Demo Mode (Gemma 4 Ready)</span>
+          </div>
+
+          <!-- Notification & Settings -->
+          <div class="header-actions">
+            <button class="header-icon-btn" id="header-settings-btn" title="Platform Settings">
+              <i class="fas fa-gear"></i>
+            </button>
+            <button class="header-icon-btn" onclick="AppRouter.navigate('action-center')" title="Action Notifications">
+              <i class="fas fa-bell"></i>
+              <span class="badge-dot"></span>
+            </button>
+          </div>
+
+          <!-- User Profile Badge -->
+          <div class="user-profile-badge">
+            <div class="user-avatar">RS</div>
+            <div class="user-details">
+              <span class="user-name">R. Sharma</span>
+              <span class="user-role">Chief HSE Officer</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA CONTAINING ALL 9 PAGES -->
+      <main class="content-area">
+
+        <!-- ================================================================
+             PAGE 1: DASHBOARD
+             ================================================================ -->
+        <section id="view-dashboard" class="view-section active">
+          <!-- KPI Metrics Row -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Total Sites</span>
+                <span class="kpi-value" id="kpi-total-sites">3</span>
+                <span class="kpi-subtext positive"><i class="fas fa-circle-check"></i> All Monitored</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-blue"><i class="fas fa-building"></i></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Videos Analyzed</span>
+                <span class="kpi-value" id="kpi-total-videos">42</span>
+                <span class="kpi-subtext positive"><i class="fas fa-arrow-trend-up"></i> +14 this week</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-cyan"><i class="fas fa-video"></i></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Potential Hazards</span>
+                <span class="kpi-value" id="kpi-potential-hazards">5</span>
+                <span class="kpi-subtext critical"><i class="fas fa-triangle-exclamation"></i> 2 Critical</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-red"><i class="fas fa-circle-radiation"></i></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Pending Reviews</span>
+                <span class="kpi-value" id="kpi-pending-reviews">3</span>
+                <span class="kpi-subtext warning"><i class="fas fa-clock"></i> Requires Supervisor</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-orange"><i class="fas fa-user-clock"></i></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Verified Incidents</span>
+                <span class="kpi-value" id="kpi-verified-incidents">2</span>
+                <span class="kpi-subtext neutral"><i class="fas fa-fingerprint"></i> Human Signed</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-purple"><i class="fas fa-clipboard-check"></i></div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-info">
+                <span class="kpi-label">Resolved Actions</span>
+                <span class="kpi-value" id="kpi-resolved-actions">1</span>
+                <span class="kpi-subtext positive"><i class="fas fa-shield-check"></i> Remediated</span>
+              </div>
+              <div class="kpi-icon-box kpi-icon-green"><i class="fas fa-circle-check"></i></div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="charts-grid">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-chart-line" style="color:var(--primary);"></i> Safety Trends & Inspection Velocity</h3>
+                  <span class="card-subtitle">Daily video feeds processed vs. detected potential hazards</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <span class="badge badge-info">Last 7 Days</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="safetyTrendsChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-chart-pie" style="color:var(--warning);"></i> Hazard Category Distribution</h3>
+                  <span class="card-subtitle">Breakdown across safety categories</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="hazardCategoryChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Recent Tables -->
+          <div style="display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap;">
+            <button class="btn btn-primary" data-quick-action="inspection">
+              <i class="fas fa-upload"></i> Upload Inspection Video
+            </button>
+            <button class="btn btn-outline" data-quick-action="site-map">
+              <i class="fas fa-map"></i> Open Blueprint Map
+            </button>
+            <button class="btn btn-outline" data-quick-action="action-center">
+              <i class="fas fa-list-check"></i> Corrective Action Center
+            </button>
+            <button class="btn btn-outline" data-quick-action="reports">
+              <i class="fas fa-file-pdf"></i> Generate Safety Audit Report
+            </button>
+          </div>
+
+          <div class="dashboard-bottom-grid">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-list"></i> Recent CCTV Inspection Runs</h3>
+                  <span class="card-subtitle">Continuous automated safety surveillance logs</span>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="AppRouter.navigate('inspection')">New Ingest</button>
+              </div>
+              <div class="card-body" style="padding:0;">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Run ID</th>
+                        <th>Site</th>
+                        <th>Zone</th>
+                        <th>Date & Time</th>
+                        <th>Duration</th>
+                        <th>Hazards</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recent-inspections-tbody">
+                      <!-- Populated dynamically -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-bell" style="color:var(--danger);"></i> Recent Safety Alerts</h3>
+                  <span class="card-subtitle">Potential violations requiring immediate human review</span>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="AppRouter.navigate('hazards')">View All</button>
+              </div>
+              <div class="card-body">
+                <div class="alerts-list" id="recent-alerts-feed">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 2: VIDEO INSPECTION
+             ================================================================ -->
+        <section id="view-inspection" class="view-section">
+          <div class="inspection-layout">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-cloud-arrow-up" style="color:var(--primary);"></i> CCTV Video Upload & Ingest</h3>
+                  <span class="card-subtitle">Upload construction site surveillance footage (MP4, MOV supported)</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="dropzone-container" id="video-dropzone">
+                  <input type="file" id="video-file-input" class="file-input-hidden" accept=".mp4,.mov,video/mp4,video/quicktime" />
+                  <i class="fas fa-film dropzone-icon"></i>
+                  <h4 class="dropzone-title">Drag & drop your site video here</h4>
+                  <p class="dropzone-subtitle">Supports 1080p, 4K CCTV feeds &bull; Max recommended 500 MB</p>
+                  <button class="btn btn-outline btn-sm" type="button" onclick="document.getElementById('video-file-input').click()">
+                    <i class="fas fa-folder-open"></i> Browse Video Files
+                  </button>
+                </div>
+
+                <div class="sample-videos-bar">
+                  <span class="sample-label">Or Load Preset Video:</span>
+                  <button class="sample-chip" data-sample-video="scaffold">
+                    <i class="fas fa-play"></i> Preset 1: High-Rise Missing Hardhat
+                  </button>
+                  <button class="sample-chip" data-sample-video="electrical">
+                    <i class="fas fa-play"></i> Preset 2: Substation Cable in Water
+                  </button>
+                  <button class="sample-chip" data-sample-video="egress">
+                    <i class="fas fa-play"></i> Preset 3: Blocked Fire Exit Corridor
+                  </button>
+                </div>
+
+                <div id="file-info-box" style="display:none; margin-top:20px; padding:14px; background:#f8fafc; border:1px solid var(--border-light); border-radius:var(--radius-sm);">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                      <div style="font-weight:700; color:var(--text-main); font-size:13px;" id="file-info-name">-</div>
+                      <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+                        Size: <span id="file-info-size">-</span> &bull; Format: <span id="file-info-type">-</span>
+                      </div>
+                    </div>
+                    <span class="badge badge-success"><i class="fas fa-check"></i> Ready for Analysis</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Video Preview & Metadata Form -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-sliders" style="color:var(--text-main);"></i> Inspection Parameters</h3>
+                  <span class="card-subtitle">Associate footage with spatial metadata</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="video-preview-wrapper" style="margin-bottom:18px;">
+                  <video id="inspection-video-player" class="video-element" controls style="display:none;"></video>
+                  <div id="video-placeholder" class="video-placeholder-overlay">
+                    <i class="fas fa-video-slash" style="font-size:36px; opacity:0.6;"></i>
+                    <div>No video stream selected</div>
+                    <div style="font-size:11px; color:#64748b;">Upload or choose a sample preset</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="inspection-site-select">Construction Site</label>
+                  <select class="form-select" id="inspection-site-select">
+                    <!-- Loaded dynamically -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="inspection-zone-select">Camera / Spatial Zone</label>
+                  <select class="form-select" id="inspection-zone-select">
+                    <!-- Loaded dynamically -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="inspection-shift-select">Inspection Shift</label>
+                  <select class="form-select" id="inspection-shift-select">
+                    <option value="morning">Morning Shift (07:00 - 15:00) &bull; High Activity</option>
+                    <option value="afternoon">Afternoon Shift (15:00 - 23:00) &bull; Concrete Pour</option>
+                    <option value="night">Night Shift (23:00 - 07:00) &bull; Heavy Equipment Transport</option>
+                  </select>
+                </div>
+
+                <button class="btn btn-primary btn-lg" id="btn-start-inspection" style="width:100%; margin-top:8px;" disabled>
+                  <i class="fas fa-brain-circuit"></i> Start Gemma 4 AI Inspection
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 3: AI ANALYSIS PIPELINE
+             ================================================================ -->
+        <section id="view-analysis" class="view-section">
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title"><i class="fas fa-microchip" style="color:var(--primary);"></i> Gemma 4 Multimodal Inspection Pipeline</h3>
+                <span class="card-subtitle">End-to-end frame extraction, neural vision inference & rule matching</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span id="pipeline-progress-text" style="font-size:13px; font-weight:700; color:var(--primary);">Ready</span>
+                <button class="btn btn-outline btn-sm" id="btn-rerun-analysis">
+                  <i class="fas fa-rotate-right"></i> Run Analysis Demo
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Overall Progress Bar -->
+              <div style="height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin-bottom:24px;">
+                <div id="pipeline-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg, #2563eb, #38bdf8); transition:width 0.4s ease;"></div>
+              </div>
+
+              <!-- 6 Stages Stepper Cards -->
+              <div class="pipeline-stepper">
+                <div class="pipeline-step-card" id="pipeline-step-1">
+                  <div class="step-card-status-dot">1</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 1: Video Ingest & Container Validation</div>
+                    <div class="step-desc">Ingests video container, validates frame rate (30fps), resolution (1080p), and camera telemetry.</div>
+                  </div>
+                  <div class="step-meta">OpenCV VideoCapture</div>
+                </div>
+
+                <div class="pipeline-step-card" id="pipeline-step-2">
+                  <div class="step-card-status-dot">2</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 2: Keyframe Extraction & Scene Change Filtering</div>
+                    <div class="step-desc">Samples keyframes at adaptive 1.5-second deltas, removes duplicate stationary frames.</div>
+                  </div>
+                  <div class="step-meta">Structural Similarity (SSIM)</div>
+                </div>
+
+                <div class="pipeline-step-card" id="pipeline-step-3">
+                  <div class="step-card-status-dot">3</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 3: Dispatching Keyframes to Gemma 4 via Ollama</div>
+                    <div class="step-desc">Sends selected frames to local Ollama multimodal vision transformer for spatial object detection.</div>
+                  </div>
+                  <div class="step-meta">Ollama API / Gemma 4 Vision</div>
+                </div>
+
+                <div class="pipeline-step-card" id="pipeline-step-4">
+                  <div class="step-card-status-dot">4</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 4: Visual Observation Analysis & Danger Reasoning</div>
+                    <div class="step-desc">Detects missing hardhats, unguarded scaffold perimeters, trailing cables in water, and blocked corridors.</div>
+                  </div>
+                  <div class="step-meta">Spatial Bounding Coordinates</div>
+                </div>
+
+                <div class="pipeline-step-card" id="pipeline-step-5">
+                  <div class="step-card-status-dot">5</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 5: Cross-Referencing Safety SOPs & OSHA Standards</div>
+                    <div class="step-desc">Matches visual observations against indexed PDF safety manuals, OSHA 1926 codes, and company rules.</div>
+                  </div>
+                  <div class="step-meta">PyMuPDF / Vector Index</div>
+                </div>
+
+                <div class="pipeline-step-card" id="pipeline-step-6">
+                  <div class="step-card-status-dot">6</div>
+                  <div class="step-info">
+                    <div class="step-title">Stage 6: Generating Inspection Results & Risk Stratification</div>
+                    <div class="step-desc">Produces potential issue alerts, assigns priority levels, and presents observations for human review.</div>
+                  </div>
+                  <div class="step-meta">Structured JSON Payload</div>
+                </div>
+              </div>
+
+              <!-- Real-time Extracted Frames Carousel -->
+              <div style="margin-top:20px;">
+                <h4 style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:8px;">
+                  <i class="fas fa-images"></i> Sampled Frame Stream with Vision Overlays
+                </h4>
+                <div class="frame-carousel" id="extracted-frames-carousel">
+                  <div style="padding:16px; color:var(--text-muted); font-size:12px;">Frames will appear here during extraction...</div>
+                </div>
+              </div>
+
+              <!-- Terminal Console Logs -->
+              <div style="margin-top:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <h4 style="font-size:13px; font-weight:700; color:var(--text-main);">
+                    <i class="fas fa-terminal"></i> Inference Engine Terminal Log
+                  </h4>
+                  <span style="font-size:11px; font-family:monospace; color:#38bdf8;">backend: FastAPI &bull; engine: gemma4</span>
+                </div>
+                <div class="terminal-console" id="pipeline-console">
+                  <div class="terminal-line"><span class="terminal-time">[00:00:00]</span> Platform initialized. Awaiting video trigger...</div>
+                </div>
+              </div>
+
+              <!-- Completion Summary Card -->
+              <div id="analysis-results-summary" style="display:none; margin-top:24px; padding:20px; background:linear-gradient(135deg, #ecfdf5, #f0fdf4); border:1px solid #a7f3d0; border-radius:var(--radius-md);">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                  <div>
+                    <h3 style="font-size:16px; font-weight:800; color:#065f46; display:flex; align-items:center; gap:8px;">
+                      <i class="fas fa-circle-check" style="font-size:20px;"></i> Inspection Analysis Complete!
+                    </h3>
+                    <p style="font-size:13px; color:#047857; margin-top:4px;">
+                      Found <strong>3 Potential Safety Observations</strong>. Observations are flagged as <em>Needs Human Review</em>.
+                    </p>
+                  </div>
+                  <div style="display:flex; gap:10px;">
+                    <button class="btn btn-outline" id="btn-view-analysis-map">
+                      <i class="fas fa-map"></i> View on Blueprint
+                    </button>
+                    <button class="btn btn-primary" id="btn-view-analysis-hazards">
+                      <i class="fas fa-triangle-exclamation"></i> Review Observations
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 4: HAZARD DETECTION
+             ================================================================ -->
+        <section id="view-hazards" class="view-section">
+          <!-- Filters & Search Toolbar -->
+          <div class="filter-bar">
+            <div class="filter-controls">
+              <div class="search-input-wrapper">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" class="form-input" id="hazard-search-input" placeholder="Search hazards or SOP rules..." />
+              </div>
+
+              <select class="form-select" id="hazard-filter-category" style="width:auto;">
+                <option value="all">All Categories</option>
+                <option value="PPE Compliance">PPE Compliance</option>
+                <option value="Fall Protection">Fall Protection</option>
+                <option value="Electrical Safety">Electrical Safety</option>
+                <option value="Blocked Emergency Exits">Blocked Emergency Exits</option>
+                <option value="Heavy Machinery">Heavy Machinery</option>
+              </select>
+
+              <select class="form-select" id="hazard-filter-priority" style="width:auto;">
+                <option value="all">All Priorities</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+
+              <select class="form-select" id="hazard-filter-status" style="width:auto;">
+                <option value="all">All Statuses</option>
+                <option value="pending">Needs Human Review</option>
+                <option value="verified">Human Verified</option>
+                <option value="dismissed">Dismissed</option>
+              </select>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="badge badge-info" id="hazard-count-badge">5 Observations</span>
+              <button class="btn btn-primary btn-sm" onclick="AppRouter.navigate('inspection')">
+                <i class="fas fa-plus"></i> New Inspection
+              </button>
+            </div>
+          </div>
+
+          <!-- Observation Cards Grid -->
+          <div class="hazard-grid" id="hazard-observations-grid">
+            <!-- Populated dynamically via HazardsModule.render() -->
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 5: SMART CONSTRUCTION SITE MAP & BLUEPRINT
+             ================================================================ -->
+        <section id="view-site-map" class="view-section">
+          <div class="map-page-layout">
+            <!-- Blueprint Workspace -->
+            <div class="blueprint-workspace">
+              <!-- Blueprint Toolbar -->
+              <div class="blueprint-toolbar">
+                <div class="blueprint-mode-tabs">
+                  <button class="blueprint-tab-btn active" id="map-tab-blueprint">
+                    <i class="fas fa-compass-drafting"></i> 2D Vector Blueprint
+                  </button>
+                  <button class="blueprint-tab-btn" id="map-tab-satellite">
+                    <i class="fas fa-satellite"></i> GIS Aerial Satellite
+                  </button>
+                </div>
+
+                <div class="blueprint-controls">
+                  <label style="color:#cbd5e1; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" id="filter-layer-cctv" data-map-layer checked /> CCTV Cones
+                  </label>
+                  <label style="color:#cbd5e1; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" id="filter-layer-safety" data-map-layer checked /> Safety Equipment
+                  </label>
+                  <label style="color:#cbd5e1; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+                    <input type="checkbox" id="filter-layer-hazards" data-map-layer checked /> Hazard Pins
+                  </label>
+                </div>
+              </div>
+
+              <!-- Interactive Custom SVG Construction Blueprint -->
+              <div id="blueprint-svg-container" style="flex:1; width:100%; height:100%; position:relative; overflow:hidden;">
+                <svg viewBox="0 0 960 540" class="blueprint-svg-canvas" id="blueprint-svg">
+                  <!-- Blueprint Background Grid & Coordinate lines -->
+                  <defs>
+                    <pattern id="bp-fine-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" stroke-width="0.8" />
+                    </pattern>
+                    <pattern id="bp-major-grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#334155" stroke-width="1.2" />
+                    </pattern>
+                    <!-- CCTV Camera Field of View Gradient -->
+                    <radialGradient id="camera-fov-grad" cx="0%" cy="50%" r="100%">
+                      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45" />
+                      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02" />
+                    </radialGradient>
+                  </defs>
+
+                  <rect width="960" height="540" fill="#0f172a" />
+                  <rect width="960" height="540" fill="url(#bp-fine-grid)" />
+                  <rect width="960" height="540" fill="url(#bp-major-grid)" opacity="0.6" />
+
+                  <!-- Site Boundary Fence -->
+                  <rect x="40" y="40" width="880" height="460" rx="8" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="8 4" />
+                  <text x="50" y="32" font-family="monospace" font-size="11" fill="#94a3b8">SKYLINE TOWER B &bull; PLOT 41-B METRO PHASE 3 PERIMETER</text>
+
+                  <!-- ================= ZONES ================= -->
+                  <!-- Zone 1: Tower B Core & High-Rise (Building Zone) -->
+                  <polygon points="120,80 480,80 480,300 120,300" fill="#1e3a8a" fill-opacity="0.2" stroke="#3b82f6" class="zone-polygon" />
+                  <text x="135" y="105" font-family="sans-serif" font-size="13" font-weight="bold" fill="#60a5fa">BUILDING ZONE: TOWER B CORE</text>
+                  <text x="135" y="122" font-family="sans-serif" font-size="10" fill="#94a3b8">Active Floor Scaffolding & Formwork</text>
+
+                  <!-- Internal Structural Columns -->
+                  <rect x="160" y="140" width="18" height="18" fill="#475569" />
+                  <rect x="280" y="140" width="18" height="18" fill="#475569" />
+                  <rect x="400" y="140" width="18" height="18" fill="#475569" />
+                  <rect x="160" y="240" width="18" height="18" fill="#475569" />
+                  <rect x="280" y="240" width="18" height="18" fill="#475569" />
+                  <rect x="400" y="240" width="18" height="18" fill="#475569" />
+
+                  <!-- Zone 2: Electrical Substation Zone -->
+                  <polygon points="520,240 760,240 760,420 520,420" fill="#78350f" fill-opacity="0.25" stroke="#f59e0b" class="zone-polygon" />
+                  <text x="535" y="265" font-family="sans-serif" font-size="13" font-weight="bold" fill="#fbbf24">ELECTRICAL SUBSTATION ZONE</text>
+                  <text x="535" y="282" font-family="sans-serif" font-size="10" fill="#cbd5e1">415V Feeders / Transformer Station</text>
+                  <rect x="560" y="300" width="60" height="40" fill="#b45309" stroke="#f59e0b" />
+                  <text x="575" y="325" font-family="sans-serif" font-size="10" font-weight="bold" fill="#fff">415V</text>
+
+                  <!-- Zone 3: Material Staging & Yard -->
+                  <polygon points="520,80 880,80 880,210 520,210" fill="#064e3b" fill-opacity="0.2" stroke="#10b981" class="zone-polygon" />
+                  <text x="535" y="105" font-family="sans-serif" font-size="13" font-weight="bold" fill="#34d399">MATERIAL STORAGE & STAGING</text>
+                  <text x="535" y="122" font-family="sans-serif" font-size="10" fill="#a7f3d0">Rebar Cages / Timber Pallets</text>
+
+                  <!-- Zone 4: Heavy Machinery & Excavation -->
+                  <polygon points="120,340 440,340 440,460 120,460" fill="#581c87" fill-opacity="0.2" stroke="#a855f7" class="zone-polygon" />
+                  <text x="135" y="365" font-family="sans-serif" font-size="13" font-weight="bold" fill="#c084fc">HEAVY MACHINERY / EXCAVATION</text>
+                  <text x="135" y="382" font-family="sans-serif" font-size="10" fill="#e9d5ff">Excavator Swing Radius & Trenching</text>
+
+                  <!-- ================= ACCESS & SAFETY INFRASTRUCTURE ================= -->
+                  <g id="blueprint-safety-facilities">
+                    <!-- Main Entrance & Security Gate -->
+                    <rect x="40" y="220" width="16" height="60" fill="#2563eb" />
+                    <text x="15" y="255" font-family="sans-serif" font-size="10" font-weight="bold" fill="#60a5fa" transform="rotate(-90 20,255)">MAIN GATE</text>
+
+                    <!-- Emergency Exits & Evacuation Paths -->
+                    <rect x="900" y="110" width="16" height="50" fill="#10b981" />
+                    <text x="890" y="100" font-family="sans-serif" font-size="10" font-weight="bold" fill="#10b981">EMERGENCY EXIT 1</text>
+                    <path d="M 780 135 L 895 135" stroke="#10b981" stroke-width="2" stroke-dasharray="4 2" />
+
+                    <rect x="800" y="480" width="60" height="16" fill="#10b981" />
+                    <text x="790" y="475" font-family="sans-serif" font-size="10" font-weight="bold" fill="#10b981">EMERGENCY EXIT 2</text>
+
+                    <!-- First Aid Station -->
+                    <circle cx="80" cy="90" r="14" fill="#ffffff" stroke="#ef4444" stroke-width="2" />
+                    <rect x="78" y="82" width="4" height="16" fill="#ef4444" />
+                    <rect x="72" y="88" width="16" height="4" fill="#ef4444" />
+                    <text x="100" y="94" font-family="sans-serif" font-size="11" font-weight="bold" fill="#ffffff">First Aid Station</text>
+
+                    <!-- Fire Extinguishers -->
+                    <g transform="translate(490, 95)">
+                      <circle cx="0" cy="0" r="10" fill="#ef4444" />
+                      <text x="0" y="3.5" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">FE</text>
+                    </g>
+                    <g transform="translate(505, 330)">
+                      <circle cx="0" cy="0" r="10" fill="#ef4444" />
+                      <text x="0" y="3.5" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">FE</text>
+                    </g>
+                    <g transform="translate(850, 190)">
+                      <circle cx="0" cy="0" r="10" fill="#ef4444" />
+                      <text x="0" y="3.5" font-family="sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">FE</text>
+                    </g>
+                  </g>
+
+                  <!-- ================= CCTV CAMERAS & FOV CONES ================= -->
+                  <g id="blueprint-cctv-cameras">
+                    <!-- CAM 01 (Covering Tower B North) -->
+                    <g transform="translate(100, 70)">
+                      <path d="M 0 0 L 160 -40 L 180 80 Z" fill="url(#camera-fov-grad)" />
+                      <circle cx="0" cy="0" r="7" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
+                      <text x="10" y="-8" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8">CAM-01</text>
+                    </g>
+
+                    <!-- CAM 04 (Covering Tower B Scaffold East) -->
+                    <g transform="translate(480, 80)">
+                      <path d="M 0 0 L -120 180 L 10 210 Z" fill="url(#camera-fov-grad)" />
+                      <circle cx="0" cy="0" r="7" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
+                      <text x="10" y="14" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8">CAM-04 (ACTIVE)</text>
+                    </g>
+
+                    <!-- CAM 02 (Covering Electrical Substation) -->
+                    <g transform="translate(510, 230)">
+                      <path d="M 0 0 L 180 30 L 140 180 Z" fill="url(#camera-fov-grad)" />
+                      <circle cx="0" cy="0" r="7" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
+                      <text x="10" y="14" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8">CAM-02</text>
+                    </g>
+
+                    <!-- CAM 06 (Covering Storage & Exit 1) -->
+                    <g transform="translate(860, 70)">
+                      <path d="M 0 0 L -180 40 L -60 170 Z" fill="url(#camera-fov-grad)" />
+                      <circle cx="0" cy="0" r="7" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
+                      <text x="-48" y="-6" font-family="monospace" font-size="9" font-weight="bold" fill="#38bdf8">CAM-06</text>
+                    </g>
+                  </g>
+
+                  <!-- ================= INTERACTIVE HAZARD PINS ================= -->
+                  <g id="blueprint-hazard-pins">
+                    <!-- Injected dynamically via SiteMapModule.render() -->
+                  </g>
+                </svg>
+
+                <!-- Interactive Marker Flyout Drawer -->
+                <div class="marker-flyout-drawer" id="blueprint-marker-flyout">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                    <div>
+                      <span style="font-family:monospace; font-size:11px; color:#38bdf8; font-weight:700;" id="flyout-obs-id">OBS-1042</span>
+                      <h4 style="font-size:14px; font-weight:700; color:#ffffff;" id="flyout-obs-title">Observation Details</h4>
+                    </div>
+                    <button id="marker-drawer-close" style="background:none; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">
+                      <i class="fas fa-xmark"></i>
+                    </button>
+                  </div>
+
+                  <div style="height:120px; border-radius:6px; overflow:hidden; margin-bottom:10px; background:#000;">
+                    <img id="flyout-obs-evidence" src="" alt="Evidence" style="width:100%; height:100%; object-fit:cover;" />
+                  </div>
+
+                  <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                    <span id="flyout-obs-prio" class="badge badge-danger">Critical</span>
+                    <span style="font-size:11px; color:#94a3b8;"><i class="fas fa-clock"></i> <span id="flyout-obs-time">00:03:42</span></span>
+                  </div>
+
+                  <div style="font-size:12px; color:#cbd5e1; margin-bottom:6px;">
+                    <strong>Category:</strong> <span id="flyout-obs-category">PPE Compliance</span>
+                  </div>
+
+                  <div style="font-size:12px; color:#cbd5e1; margin-bottom:8px;">
+                    <strong>Zone:</strong> <span id="flyout-obs-zone">Tower B Core</span>
+                  </div>
+
+                  <div style="font-size:11px; background:rgba(30,41,59,0.8); border:1px solid #334155; padding:8px; border-radius:4px; margin-bottom:12px;">
+                    <div style="color:#60a5fa; font-weight:bold; margin-bottom:2px;"><i class="fas fa-book"></i> <span id="flyout-obs-sop">OSHA 1926</span></div>
+                    <div id="flyout-obs-action" style="color:#e2e8f0;">Issue stop-work notice</div>
+                  </div>
+
+                  <button class="btn btn-primary btn-sm" id="flyout-btn-action" style="width:100%;">
+                    <i class="fas fa-bolt"></i> Remediate in Action Center
+                  </button>
+                </div>
+
+                <!-- Blueprint Bottom Legend -->
+                <div class="blueprint-legend">
+                  <div class="legend-item">
+                    <span class="legend-dot red"></span>
+                    <span>High-Priority Verified Hazard</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-dot orange"></span>
+                    <span>Needs Human Review</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-dot green"></span>
+                    <span>Resolved</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-dot grey"></span>
+                    <span>Compliant Zone</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Leaflet Map Container (Toggled via Satellite Mode) -->
+              <div id="leaflet-map-container" style="display:none; flex:1; width:100%; height:100%;"></div>
+            </div>
+
+            <!-- Spatial Safety Analytics Sidebar -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title"><i class="fas fa-chart-simple" style="color:var(--primary);"></i> Zone-Wise Safety Status</h3>
+                  <span class="card-subtitle">Spatial hazard distribution</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="zone-statistics-container">
+                  <!-- Populated dynamically via SiteMapModule.renderZoneStats() -->
+                </div>
+
+                <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border-light); font-size:11.5px; color:var(--text-muted);">
+                  <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span>Active CCTV Coverage:</span>
+                    <strong style="color:var(--success);">94% of Site Area</strong>
+                  </div>
+                  <div style="display:flex; justify-content:space-between;">
+                    <span>Emergency Route Clearance:</span>
+                    <strong style="color:var(--warning);">82% (1 Blockage)</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 6: SAFETY SOP INTELLIGENCE
+             ================================================================ -->
+        <section id="view-safety-sops" class="view-section">
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title"><i class="fas fa-book-bookmark" style="color:var(--primary);"></i> Safety Manuals & SOP Rule Extractor</h3>
+                <span class="card-subtitle">Cross-reference Gemma 4 AI observations with OSHA and corporate safety standards</span>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="AppRouter.showToast('Please select a PDF safety manual to upload and parse.', 'info')">
+                <i class="fas fa-file-arrow-up"></i> Upload PDF Manual
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="dropzone-container" style="padding:24px; margin-bottom:20px;" onclick="AppRouter.showToast('Document ingestion ready. Supports OSHA 1926, IS 3786, and internal SOP PDFs.', 'info')">
+                <i class="fas fa-file-pdf dropzone-icon" style="font-size:32px;"></i>
+                <h4 class="dropzone-title" style="font-size:14px;">Upload Safety Code Manual (PDF)</h4>
+                <p class="dropzone-subtitle" style="font-size:12px;">Automatic rule extraction with PyMuPDF & vector search embedding</p>
+              </div>
+
+              <h4 style="font-size:14px; font-weight:700; color:var(--text-main); margin-bottom:14px;">
+                Extracted Safety Standards & Corrective Directives
+              </h4>
+              <div class="sop-grid" id="sops-catalog-grid">
+                <!-- Loaded dynamically via AppRouter.renderSOPsPage() -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 7: ACTION CENTER
+             ================================================================ -->
+        <section id="view-action-center" class="view-section">
+          <div class="filter-bar" style="margin-bottom:16px;">
+            <div>
+              <h3 style="font-size:16px; font-weight:700; color:var(--text-main);">Corrective Action Kanban Workflow</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Manage remediation life-cycle from AI observation to resolved closure</p>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-outline btn-sm" onclick="ActionsModule.render()"><i class="fas fa-rotate"></i> Refresh Board</button>
+            </div>
+          </div>
+
+          <!-- 5 Kanban Columns -->
+          <div class="kanban-board">
+            <!-- Col 1: Pending Reviews -->
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-col-title">
+                  <i class="fas fa-clock" style="color:var(--warning);"></i> Pending Review
+                </div>
+                <span class="kanban-counter" id="kanban-count-pending">0</span>
+              </div>
+              <div class="kanban-cards-wrapper" id="kanban-col-pending"></div>
+            </div>
+
+            <!-- Col 2: Confirmed -->
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-col-title">
+                  <i class="fas fa-circle-check" style="color:var(--primary);"></i> Confirmed
+                </div>
+                <span class="kanban-counter" id="kanban-count-confirmed">0</span>
+              </div>
+              <div class="kanban-cards-wrapper" id="kanban-col-confirmed"></div>
+            </div>
+
+            <!-- Col 3: Assigned Actions -->
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-col-title">
+                  <i class="fas fa-user-gear" style="color:#8b5cf6;"></i> Assigned
+                </div>
+                <span class="kanban-counter" id="kanban-count-assigned">0</span>
+              </div>
+              <div class="kanban-cards-wrapper" id="kanban-col-assigned"></div>
+            </div>
+
+            <!-- Col 4: In Progress -->
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-col-title">
+                  <i class="fas fa-wrench" style="color:#0284c7;"></i> In Progress
+                </div>
+                <span class="kanban-counter" id="kanban-count-inprogress">0</span>
+              </div>
+              <div class="kanban-cards-wrapper" id="kanban-col-inprogress"></div>
+            </div>
+
+            <!-- Col 5: Resolved -->
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-col-title">
+                  <i class="fas fa-shield-check" style="color:var(--success);"></i> Resolved
+                </div>
+                <span class="kanban-counter" id="kanban-count-resolved">0</span>
+              </div>
+              <div class="kanban-cards-wrapper" id="kanban-col-resolved"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 8: REPORTS & AUDIT VIEW
+             ================================================================ -->
+        <section id="view-reports" class="view-section">
+          <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:16px;" class="no-print">
+            <button class="btn btn-outline" id="btn-export-csv-report">
+              <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-primary" id="btn-download-pdf-report">
+              <i class="fas fa-print"></i> Download / Print PDF Report
+            </button>
+          </div>
+
+          <div class="report-paper-container">
+            <!-- Report Header -->
+            <div class="report-header-banner">
+              <div>
+                <div class="report-brand-title">KAVACH360 AI &bull; SAFETY COMPLIANCE AUDIT</div>
+                <div style="font-size:13px; color:var(--text-muted); margin-top:4px;">
+                  Official Multimodal Vision Safety Inspection Record &bull; OSHA 1926 Standards
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <span class="badge badge-info" style="font-size:12px;">OFFICIAL RECORD</span>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Doc ID: KAV-AUDIT-2026-904</div>
+              </div>
+            </div>
+
+            <!-- Site & Inspection Metadata -->
+            <div class="report-meta-grid">
+              <div class="report-meta-item">
+                <span class="report-meta-label">Construction Site</span>
+                <span class="report-meta-val" id="report-site-name">Skyline Tower B</span>
+              </div>
+              <div class="report-meta-item">
+                <span class="report-meta-label">Location</span>
+                <span class="report-meta-val" id="report-site-location">Plot 41-B Metro Phase 3</span>
+              </div>
+              <div class="report-meta-item">
+                <span class="report-meta-label">HSE Lead Inspector</span>
+                <span class="report-meta-val" id="report-site-manager">Rajesh Kumar</span>
+              </div>
+              <div class="report-meta-item">
+                <span class="report-meta-label">Audit Date</span>
+                <span class="report-meta-val" id="report-audit-date">30 Oct 2026</span>
+              </div>
+            </div>
+
+            <!-- Safety Index Score -->
+            <div class="report-score-box">
+              <div class="score-circle">
+                <div id="report-safety-score">84</div>
+                <span>/ 100</span>
+              </div>
+              <div>
+                <h4 style="font-size:16px; font-weight:800; color:var(--text-main);">
+                  Site Compliance Rating: <span id="report-safety-grade" style="color:var(--primary);">Grade A</span>
+                </h4>
+                <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                  Calculated using weighted severity deduction across active hazard observations.
+                </p>
+                <div style="display:flex; gap:16px; margin-top:8px; font-size:12px;">
+                  <span>Total Observations: <strong id="report-stat-total">5</strong></span>
+                  <span>Critical Hazards: <strong id="report-stat-critical" style="color:var(--danger);">2</strong></span>
+                  <span>Verified: <strong id="report-stat-verified">2</strong></span>
+                  <span>Pending Review: <strong id="report-stat-pending">3</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Observation Details Table -->
+            <h4 style="font-size:14px; font-weight:700; color:var(--text-main); margin-bottom:12px;">
+              Documented Safety Observations & Evidence
+            </h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Obs ID</th>
+                    <th>Hazard Details</th>
+                    <th>Priority</th>
+                    <th>Timestamp</th>
+                    <th>SOP Reference</th>
+                    <th>Verification</th>
+                    <th>Prescribed Action</th>
+                  </tr>
+                </thead>
+                <tbody id="report-observations-tbody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Sign-Off Block -->
+            <div style="margin-top:40px; padding-top:24px; border-top:1px solid #cbd5e1; display:flex; justify-content:space-between; font-size:12px;">
+              <div>
+                <div>AI Inspection Engine: <strong>Gemma 4 Multimodal via Ollama</strong></div>
+                <div style="color:var(--text-muted);">Timestamp Verified via SHA-256 Hash</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="border-bottom:1px solid #000; width:180px; margin-bottom:4px; height:20px;"></div>
+                <div>Authorized HSE Supervisor Signature</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             PAGE 9: SITE MANAGEMENT
+             ================================================================ -->
+        <section id="view-sites" class="view-section">
+          <div class="filter-bar" style="margin-bottom:20px;">
+            <div>
+              <h3 style="font-size:16px; font-weight:700; color:var(--text-main);">Construction Site Registry</h3>
+              <p style="font-size:12px; color:var(--text-muted);">Manage job sites, spatial zones, CCTV networks & blueprints</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-add-site').classList.add('active')">
+              <i class="fas fa-plus"></i> Add Construction Site
+            </button>
+          </div>
+
+          <div class="hazard-grid" id="sites-management-grid">
+            <!-- Populated dynamically via AppRouter.renderSitesPage() -->
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODALS & DIALOGS
+       ==================================================================== -->
+  <!-- 1. Human Review Modal -->
+  <div class="modal-overlay" id="modal-review-observation">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-obs-id-title">Review Safety Observation</h3>
+        <button class="modal-close-btn" onclick="HazardsModule.closeReviewModal()">&times;</button>
+      </div>
+      <form id="review-observation-form">
+        <div class="modal-body">
+          <div style="height:140px; background:#0f172a; border-radius:var(--radius-sm); overflow:hidden; margin-bottom:14px;">
+            <img id="modal-obs-evidence-img" src="" alt="Evidence" style="width:100%; height:100%; object-fit:cover;" />
+          </div>
+
+          <p style="font-size:13px; color:var(--text-main); margin-bottom:10px;" id="modal-obs-desc"></p>
+          <div style="font-size:11.5px; background:#f8fafc; padding:8px; border-radius:4px; border:1px solid #e2e8f0; margin-bottom:16px;">
+            <strong>Referenced SOP:</strong> <span id="modal-obs-sop"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Human Supervisor Verification Decision</label>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                <input type="radio" name="verification_decision" value="verified" checked />
+                <span><strong>Verify as Confirmed Hazard</strong> (Escalate to Action Center)</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                <input type="radio" name="verification_decision" value="dismissed" />
+                <span><strong>Dismiss Observation</strong> (False positive / Permitted exception)</span>
+              </label>
+              <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
+                <input type="radio" name="verification_decision" value="pending" />
+                <span><strong>Needs More Video Evidence</strong> (Keep in Pending status)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="modal-review-notes">Supervisor Verification Notes</label>
+            <textarea class="form-textarea" id="modal-review-notes" rows="2" placeholder="e.g., Confirmed with bay supervisor Vikas Patil. Stop work order issued."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="HazardsModule.closeReviewModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Save Verification</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Assign Action Modal -->
+  <div class="modal-overlay" id="modal-assign-action">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Assign Corrective Action (<span id="modal-assign-obs-id"></span>)</h3>
+        <button class="modal-close-btn" id="modal-assign-close">&times;</button>
+      </div>
+      <form id="assign-action-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="assign-supervisor-select">Assigned Supervisor / Engineer</label>
+            <select class="form-select" id="assign-supervisor-select">
+              <option value="Rajesh Kumar (Lead HSE)">Rajesh Kumar (Lead HSE)</option>
+              <option value="Vikas Patil (Scaffold Supv)">Vikas Patil (Scaffold Supv)</option>
+              <option value="D. Subramaniam (Chief Electrician)">D. Subramaniam (Chief Electrician)</option>
+              <option value="Anand Shinde (Logistics Lead)">Anand Shinde (Logistics Lead)</option>
+              <option value="Marcus Vance (Civil Lead)">Marcus Vance (Civil Lead)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="assign-due-date">Remediation Due Date</label>
+            <input type="date" class="form-input" id="assign-due-date" value="2026-11-01" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="assign-instructions">Action Instructions & Priority</label>
+            <textarea class="form-textarea" id="assign-instructions" rows="3" placeholder="Provide remediation directives and required proof photo upon completion..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="ActionsModule.closeAssignModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Dispatch Action</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Add Site Modal -->
+  <div class="modal-overlay" id="modal-add-site">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Construction Site</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('modal-add-site').classList.remove('active')">&times;</button>
+      </div>
+      <form id="add-site-form" onsubmit="event.preventDefault(); const name = document.getElementById('new-site-name').value; const loc = document.getElementById('new-site-location').value; const mgr = document.getElementById('new-site-mgr').value; apiService.createSite({name, location: loc, manager: mgr}).then(() => { AppRouter.initSiteSelector(); AppRouter.renderSitesPage(); document.getElementById('modal-add-site').classList.remove('active'); AppRouter.showToast('Site added successfully!', 'success'); });">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="new-site-name">Construction Project Name</label>
+            <input type="text" class="form-input" id="new-site-name" placeholder="e.g. Zenith Tech Park - Tower C" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-site-location">Location Address</label>
+            <input type="text" class="form-input" id="new-site-location" placeholder="e.g. Sector 62, Cyber Gateway" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="new-site-mgr">Safety Manager Name</label>
+            <input type="text" class="form-input" id="new-site-mgr" placeholder="e.g. Sarah Jenkins (HSE)" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-add-site').classList.remove('active')">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Site</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Settings Modal -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-gear"></i> Platform & AI Engine Configuration</h3>
+        <button class="modal-close-btn" id="modal-settings-close">&times;</button>
+      </div>
+      <form id="settings-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="settings-api-url">FastAPI Backend URL</label>
+            <input type="url" class="form-input" id="settings-api-url" value="http://localhost:8000" />
+            <span style="font-size:11px; color:var(--text-muted);">Points to planned Python/FastAPI backend running OpenCV & PyMuPDF.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="settings-model-name">Ollama Vision Model Tag</label>
+            <select class="form-select" id="settings-model-name">
+              <option value="gemma4:latest">gemma4:latest (Default Multimodal 9B)</option>
+              <option value="gemma4:27b">gemma4:27b (High Precision Industrial)</option>
+              <option value="gemma4:e4b">gemma4:e4b (Edge Optimized)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+              <input type="checkbox" id="settings-demo-toggle" checked />
+              <span style="font-size:13px; font-weight:600;">Enable Offline Demo Mode (Simulator Active)</span>
+            </label>
+            <div style="font-size:11px; color:var(--text-muted); margin-left:24px; margin-top:2px;">
+              When checked, operates seamlessly without requiring a running local Ollama or Python process.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Preferences</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Leaflet & Chart.js CDN Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Modular Vanilla JavaScript Application Modules -->
+  <script src="/frontend/js/api.js"></script>
+  <script src="/frontend/js/dashboard.js"></script>
+  <script src="/frontend/js/inspection.js"></script>
+  <script src="/frontend/js/analysis.js"></script>
+  <script src="/frontend/js/hazards.js"></script>
+  <script src="/frontend/js/map.js"></script>
+  <script src="/frontend/js/actions.js"></script>
+  <script src="/frontend/js/reports.js"></script>
+  <script src="/frontend/js/app.js"></script>
+</body>
+</html>

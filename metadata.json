@@ -1,0 +1,6 @@
+{
+  "name": "KAVACH360 AI - Construction Safety Intelligence Platform",
+  "description": "Multimodal AI-powered construction site safety inspection platform for real-time hazard detection, safety SOP matching, interactive site blueprints, and corrective action intelligence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
